@@ -143,3 +143,98 @@ footer {
         font-size: 2.5rem;
     }
 }
+
+/* ... (semua CSS lama Anda ada di sini) ... */
+
+/* Gaya untuk kartu storage agar lebar penuh */
+.stat-card.full-width {
+    grid-column: 1 / -1; /* Membuat kartu ini memakan semua kolom grid */
+}
+
+.stat-card small {
+    font-size: 0.8rem;
+    color: var(--light-text-color);
+    margin-top: 5px;
+    display: block;
+}
+
+/* Area untuk tombol aksi */
+.action-area {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+}
+
+/* Gaya umum untuk tombol */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* Gaya untuk Modal Konfirmasi */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 450px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    color: var(--secondary-color);
+}
+
+.modal-content p {
+    margin-bottom: 25px;
+    color: var(--light-text-color);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}

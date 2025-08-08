@@ -12,8 +12,14 @@
   ],
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "server.js"
+      "src": "/(.*)",
+      "dest": "server.js"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/reset-data",
+      "schedule": "0 0 * * *"
     }
   ]
 }
