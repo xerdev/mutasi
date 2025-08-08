@@ -4,12 +4,157 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Statistik Mutasi</title>
-    <!-- Menghubungkan ke file CSS -->
-    <link rel="stylesheet" href="/style.css">
     <!-- Menggunakan font dari Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Ikon untuk tab browser -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+    <style>
+        :root {
+    --primary-color: #007bff;
+    --secondary-color: #343a40;
+    --background-color: #f8f9fa;
+    --card-bg-color: #ffffff;
+    --text-color: #212529;
+    --light-text-color: #6c757d;
+    --shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    --border-radius: 15px;
+    --gradient: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.container {
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+    background: var(--card-bg-color);
+    padding: 30px 40px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease-in-out;
+}
+
+.container:hover {
+    transform: translateY(-5px);
+}
+
+header h1 {
+    color: var(--secondary-color);
+    margin-bottom: 8px;
+    font-weight: 700;
+    font-size: 2.2rem;
+}
+
+header p {
+    color: var(--light-text-color);
+    margin-bottom: 30px;
+    font-size: 1.1rem;
+}
+
+.time-display {
+    background: var(--gradient);
+    color: white;
+    padding: 20px;
+    border-radius: var(--border-radius);
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+#clock {
+    font-size: 3.5rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+#date {
+    font-size: 1.2rem;
+    font-weight: 300;
+    opacity: 0.9;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background-color: #fdfdff;
+    border: 1px solid #e9ecef;
+    padding: 25px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stat-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    border-color: var(--primary-color);
+}
+
+.card-content {
+    text-align: left;
+}
+
+.stat-card h3 {
+    margin: 0 0 10px 0;
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.stat-card p {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin: 0;
+}
+
+.card-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    opacity: 0.7;
+}
+
+footer {
+    border-top: 1px solid #e9ecef;
+    padding-top: 20px;
+    margin-top: 20px;
+    color: var(--light-text-color);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    header h1 {
+        font-size: 1.8rem;
+    }
+    #clock {
+        font-size: 2.5rem;
+    }
+}
+    </style>
 </head>
 <body>
 
