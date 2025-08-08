@@ -144,8 +144,6 @@ footer {
     }
 }
 
-/* ... (semua CSS lama Anda ada di sini) ... */
-
 /* Gaya untuk kartu storage agar lebar penuh */
 .stat-card.full-width {
     grid-column: 1 / -1; /* Membuat kartu ini memakan semua kolom grid */
@@ -237,4 +235,28 @@ footer {
     display: flex;
     justify-content: center;
     gap: 15px;
+}
+
+/* Gaya untuk Footer dengan Animasi Hati */
+footer p {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Memberi jarak antara teks dan emoji */
+}
+
+.heart-emoji {
+    display: inline-block;
+    font-size: 1.1rem; /* Sedikit memperbesar emoji */
+    animation: color-change 4s infinite linear;
+}
+
+@keyframes color-change {
+    0%   { color: #e74c3c; } /* Merah */
+    15%  { color: #e67e22; } /* Oranye */
+    30%  { color: #f1c40f; } /* Kuning */
+    45%  { color: #2ecc71; } /* Hijau */
+    60%  { color: #3498db; } /* Biru */
+    75%  { color: #9b59b6; } /* Ungu */
+    100% { color: #e74c3c; } /* Kembali ke Merah */
 }
