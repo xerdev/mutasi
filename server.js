@@ -2,10 +2,8 @@
 const express = require('express');
 const path = require('path');
 const moment = require('moment-timezone');
-// Import Vercel KV SDK
 const { kv } = require('@vercel/kv');
 
-// Inisialisasi aplikasi Express
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -14,31 +12,46 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-// --- Helper Functions (Menggunakan Vercel KV) ---
+// --- Helper Functions ---
 
 /**
- * Mengambil data dari Vercel KV.
- * @returns {Promise<Array>} Sebuah promise yang resolve dengan array data mutasi.
+ * Mengambil data mutasi dari Vercel KV.
+ * @returns {Promise<Array>}
  */
 async function getMutasiData() {
-    // Mengambil data dari KV store dengan kunci 'mutasi_data'
-    // Jika kunci tidak ada, akan mengembalikan null, jadi kita ganti dengan []
     const data = await kv.get('mutasi_data');
     return data || [];
 }
 
 /**
- * Menyimpan data ke Vercel KV.
- * @param {Array} data Data yang akan disimpan.
+ * Menyimpan data mutasi ke Vercel KV.
+ * @param {Array} data
  */
 async function saveMutasiData(data) {
-    // Menyimpan data ke KV store dengan kunci 'mutasi_data'
     await kv.set('mutasi_data', data);
 }
 
+/**
+ * Mengambil metadata (seperti tanggal reset terakhir) dari Vercel KV.
+ * @returns {Promise<Object>}
+ */
+async function getMetaData() {
+    const meta = await kv.get('app_metadata');
+    return meta || { lastResetDate: null };
+}
 
-// --- Rute API (Logika tetap sama, hanya helper function yang berubah) ---
+/**
+ * Menyimpan metadata ke Vercel KV.
+ * @param {Object} meta
+ */
+async function saveMetaData(meta) {
+    await kv.set('app_metadata', meta);
+}
 
+
+// --- Rute API ---
+
+// Rute untuk mendapatkan statistik
 app.get('/api/stats', async (req, res) => {
     const mutasiData = await getMutasiData();
     const totalData = mutasiData.length;
@@ -54,39 +67,79 @@ app.get('/api/stats', async (req, res) => {
 
     res.json({
         total_data: totalData,
-        data_hari_ini: dataHariIni
+        data_hari_ini: dataHariIni,
+        // Kita kirim jumlah data sebagai representasi penggunaan storage
+        storage_usage: totalData 
     });
 });
 
+// Rute untuk mengunggah data baru
 app.post('/upload', async (req, res) => {
     const { name, wallet, amount } = req.body;
 
     if (!name || !wallet || !amount) {
-        return res.status(400).json({
-            status: "error",
-            message: "Data tidak lengkap. 'name', 'wallet', dan 'amount' diperlukan."
-        });
+        return res.status(400).json({ status: "error", message: "Data tidak lengkap." });
     }
 
     moment.locale('id');
     const timeDateStr = moment().tz('Asia/Jakarta').format('HH:mm:ss, dddd, D MMMM YYYY');
 
-    const newEntry = { name, wallet, amount, time_date: timeDateStr };
+    // Menambahkan 'type: "CR"' pada setiap entri baru
+    const newEntry = { name, wallet, amount, type: "CR", time_date: timeDateStr };
 
-    // Proses: Ambil data lama, tambahkan entri baru, simpan kembali
     const mutasiData = await getMutasiData();
     mutasiData.push(newEntry);
-    await saveMutasiData(mutasiData); // Menyimpan array yang sudah diperbarui
+    await saveMutasiData(mutasiData);
 
-    res.status(201).json({
-        status: "success",
-        message: "Data berhasil ditambahkan"
-    });
+    res.status(201).json({ status: "success", message: "Data berhasil ditambahkan" });
 });
 
+// Rute untuk menampilkan data mentah
 app.get('/mutasi.json', async (req, res) => {
     const data = await getMutasiData();
     res.json(data);
+});
+
+// Rute BARU untuk mereset data secara manual
+app.post('/api/reset', async (req, res) => {
+    try {
+        await saveMutasiData([]); // Mengosongkan data
+        await saveMetaData({ lastResetDate: moment().toISOString() }); // Set tanggal reset
+        res.status(200).json({ status: 'success', message: 'Semua data berhasil direset.' });
+    } catch (error) {
+        console.error("Error resetting data:", error);
+        res.status(500).json({ status: 'error', message: 'Gagal mereset data.' });
+    }
+});
+
+
+// --- Rute untuk Vercel Cron Job ---
+
+// Endpoint ini akan dipanggil oleh Vercel setiap hari
+app.get('/api/cron/reset-data', async (req, res) => {
+    const meta = await getMetaData();
+    const { lastResetDate } = meta;
+
+    // Jika belum pernah direset, set tanggal hari ini dan keluar
+    if (!lastResetDate) {
+        await saveMetaData({ lastResetDate: moment().toISOString() });
+        return res.status(200).send('Tanggal reset awal telah diatur.');
+    }
+
+    const now = moment();
+    const lastReset = moment(lastResetDate);
+    const daysSinceLastReset = now.diff(lastReset, 'days');
+
+    // Cek apakah sudah 15 hari atau lebih
+    if (daysSinceLastReset >= 15) {
+        await saveMutasiData([]); // Reset data
+        await saveMetaData({ lastResetDate: now.toISOString() }); // Perbarui tanggal reset
+        console.log(`AUTO RESET: Data direset karena sudah ${daysSinceLastReset} hari.`);
+        return res.status(200).send(`Data berhasil direset otomatis setelah ${daysSinceLastReset} hari.`);
+    }
+
+    console.log(`AUTO RESET CHECK: Belum 15 hari. Baru ${daysSinceLastReset} hari sejak reset terakhir.`);
+    return res.status(200).send(`Belum waktunya reset. Baru ${daysSinceLastReset} hari.`);
 });
 
 

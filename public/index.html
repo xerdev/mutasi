@@ -4,14 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Statistik Mutasi</title>
-    <!-- Menghubungkan ke file CSS -->
     <link rel="stylesheet" href="style.css">
-    <!-- Menggunakan font dari Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <!-- Ikon untuk tab browser -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
 </head>
 <body>
+
+    <!-- Modal Konfirmasi Reset -->
+    <div id="reset-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>Konfirmasi Reset</h2>
+            <p>Apakah Anda yakin ingin menghapus semua data mutasi? Tindakan ini tidak dapat dibatalkan.</p>
+            <div class="modal-actions">
+                <button id="cancel-reset-btn" class="btn btn-secondary">Batal</button>
+                <button id="confirm-reset-btn" class="btn btn-danger">Ya, Reset Sekarang</button>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
         <header>
@@ -27,7 +36,7 @@
         <main class="stats-grid">
             <div class="stat-card">
                 <div class="card-content">
-                    <h3>Total Data Keseluruhan</h3>
+                    <h3>Total Data</h3>
                     <p id="total-data">...</p>
                 </div>
                 <div class="card-icon">&#128202;</div>
@@ -39,7 +48,20 @@
                 </div>
                 <div class="card-icon">&#128197;</div>
             </div>
+            <!-- Kartu Baru untuk Storage -->
+            <div class="stat-card full-width">
+                <div class="card-content">
+                    <h3>Penyimpanan (Jumlah Data)</h3>
+                    <p id="storage-usage">...</p>
+                    <small>Batas gratis: 512 MB (sangat cukup untuk jutaan data teks)</small>
+                </div>
+                <div class="card-icon">&#128451;</div>
+            </div>
         </main>
+        
+        <div class="action-area">
+            <button id="reset-data-btn" class="btn btn-danger">Reset Semua Data</button>
+        </div>
         
         <footer>
             <p>&copy; 2025 - Dibuat dengan Node.js & Express.js</p>
@@ -47,48 +69,80 @@
     </div>
 
     <script>
-        // Fungsi untuk memperbarui jam dan tanggal
-        function updateTime() {
-            const clockElement = document.getElementById('clock');
-            const dateElement = document.getElementById('date');
-
-            // Menggunakan Intl API bawaan browser untuk format waktu dan tanggal
-            // yang lebih akurat sesuai zona waktu pengguna, namun kita bisa set 'Asia/Jakarta'
-            const now = new Date();
-            
-            const timeOptions = { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-            const dateOptions = { timeZone: 'Asia/Jakarta', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-
-            clockElement.textContent = new Intl.DateTimeFormat('id-ID', timeOptions).format(now);
-            dateElement.textContent = new Intl.DateTimeFormat('id-ID', dateOptions).format(now);
-        }
-
-        // Fungsi untuk mengambil dan menampilkan data statistik dari API
-        async function fetchStats() {
-            try {
-                const response = await fetch('/api/stats');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const stats = await response.json();
-                
-                document.getElementById('total-data').textContent = stats.total_data;
-                document.getElementById('today-data').textContent = stats.data_hari_ini;
-            } catch (error) {
-                console.error("Gagal mengambil data statistik:", error);
-                document.getElementById('total-data').textContent = 'Error';
-                document.getElementById('today-data').textContent = 'Error';
-            }
-        }
-
-        // Jalankan fungsi saat halaman dimuat
         document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('reset-modal');
+            const openModalBtn = document.getElementById('reset-data-btn');
+            const closeModalBtn = document.getElementById('cancel-reset-btn');
+            const confirmResetBtn = document.getElementById('confirm-reset-btn');
+
+            // Fungsi untuk menampilkan modal
+            openModalBtn.addEventListener('click', () => {
+                modal.style.display = 'flex';
+            });
+
+            // Fungsi untuk menyembunyikan modal
+            const closeModal = () => {
+                modal.style.display = 'none';
+            };
+            closeModalBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+
+            // Fungsi untuk memproses reset
+            confirmResetBtn.addEventListener('click', async () => {
+                confirmResetBtn.textContent = 'Memproses...';
+                confirmResetBtn.disabled = true;
+                try {
+                    const response = await fetch('/api/reset', { method: 'POST' });
+                    if (!response.ok) {
+                        throw new Error('Gagal mereset data');
+                    }
+                    alert('Data berhasil direset!');
+                    fetchStats(); // Perbarui statistik setelah reset
+                } catch (error) {
+                    console.error("Error saat reset:", error);
+                    alert('Terjadi kesalahan saat mencoba mereset data.');
+                } finally {
+                    confirmResetBtn.textContent = 'Ya, Reset Sekarang';
+                    confirmResetBtn.disabled = false;
+                    closeModal();
+                }
+            });
+
+            // Fungsi untuk memperbarui jam dan tanggal
+            function updateTime() {
+                const clockElement = document.getElementById('clock');
+                const dateElement = document.getElementById('date');
+                const now = new Date();
+                const timeOptions = { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+                const dateOptions = { timeZone: 'Asia/Jakarta', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                clockElement.textContent = new Intl.DateTimeFormat('id-ID', timeOptions).format(now);
+                dateElement.textContent = new Intl.DateTimeFormat('id-ID', dateOptions).format(now);
+            }
+
+            // Fungsi untuk mengambil dan menampilkan data statistik dari API
+            async function fetchStats() {
+                try {
+                    const response = await fetch('/api/stats');
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const stats = await response.json();
+                    document.getElementById('total-data').textContent = stats.total_data;
+                    document.getElementById('today-data').textContent = stats.data_hari_ini;
+                    document.getElementById('storage-usage').textContent = stats.storage_usage;
+                } catch (error) {
+                    console.error("Gagal mengambil data statistik:", error);
+                    ['total-data', 'today-data', 'storage-usage'].forEach(id => {
+                        document.getElementById(id).textContent = 'Error';
+                    });
+                }
+            }
+
             updateTime();
             fetchStats();
-            
-            // Perbarui waktu setiap detik
             setInterval(updateTime, 1000);
-            // Perbarui statistik setiap 5 detik untuk menjaga data tetap fresh
             setInterval(fetchStats, 5000);
         });
     </script>
