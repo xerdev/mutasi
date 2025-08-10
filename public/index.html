@@ -1,96 +1,85 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Statistik Mutasi</title>
-    <!-- Menghubungkan ke file CSS -->
-    <link rel="stylesheet" href="style.css">
-    <!-- Menggunakan font dari Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <!-- Ikon untuk tab browser -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+    <title>Image Processing Website</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+        }
+        #uploadForm {
+            margin-bottom: 20px;
+        }
+        #resultsContainer {
+            margin-top: 20px;
+        }
+        .resultImage {
+            max-width: 500px;
+            border: 1px solid #ccc;
+            margin: 10px;
+        }
+    </style>
 </head>
 <body>
+    <h1>Image Processing Website</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="imageInput" name="image" accept="image/*">
+        <button type="button" onclick="uploadImage()">Process Image</button>
+    </form>
 
-    <div class="container">
-        <header>
-            <h1>Dashboard Statistik</h1>
-            <p>Monitoring data transaksi secara real-time.</p>
-        </header>
-
-        <div class="time-display">
-            <div id="clock">00:00:00</div>
-            <div id="date">Memuat tanggal...</div>
+    <div id="resultsContainer">
+        <h2>Processed Images</h2>
+        <div id="imageResults">
+          <img id="downloadResult" style="display: none">
+          <a id="downloadLink" style="display: none">Download Image</a>
         </div>
-
-        <main class="stats-grid">
-            <div class="stat-card">
-                <div class="card-content">
-                    <h3>Total Data Keseluruhan</h3>
-                    <p id="total-data">...</p>
-                </div>
-                <div class="card-icon">&#128202;</div>
-            </div>
-            <div class="stat-card">
-                <div class="card-content">
-                    <h3>Data Hari Ini</h3>
-                    <p id="today-data">...</p>
-                </div>
-                <div class="card-icon">&#128197;</div>
-            </div>
-        </main>
-        
-        <footer>
-            <p>&copy; 2025 - Dibuat dengan Node.js & Express.js</p>
-        </footer>
     </div>
-
     <script>
-        // Fungsi untuk memperbarui jam dan tanggal
-        function updateTime() {
-            const clockElement = document.getElementById('clock');
-            const dateElement = document.getElementById('date');
+    async function uploadImage() {
+        const imageInput = document.getElementById("imageInput");
+        const downloadResult = document.getElementById("downloadResult");
+        const downloadLinkElement = document.getElementById("downloadLink");
 
-            // Menggunakan Intl API bawaan browser untuk format waktu dan tanggal
-            // yang lebih akurat sesuai zona waktu pengguna, namun kita bisa set 'Asia/Jakarta'
-            const now = new Date();
-            
-            const timeOptions = { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-            const dateOptions = { timeZone: 'Asia/Jakarta', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-
-            clockElement.textContent = new Intl.DateTimeFormat('id-ID', timeOptions).format(now);
-            dateElement.textContent = new Intl.DateTimeFormat('id-ID', dateOptions).format(now);
+        const file = imageInput.files[0];
+        if (!file) {
+            alert("Please select an image, you fucking idiot!");
+            return;
         }
 
-        // Fungsi untuk mengambil dan menampilkan data statistik dari API
-        async function fetchStats() {
-            try {
-                const response = await fetch('/api/stats');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const stats = await response.json();
-                
-                document.getElementById('total-data').textContent = stats.total_data;
-                document.getElementById('today-data').textContent = stats.data_hari_ini;
-            } catch (error) {
-                console.error("Gagal mengambil data statistik:", error);
-                document.getElementById('total-data').textContent = 'Error';
-                document.getElementById('today-data').textContent = 'Error';
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const response = await fetch('/upscale', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        }
 
-        // Jalankan fungsi saat halaman dimuat
-        document.addEventListener('DOMContentLoaded', () => {
-            updateTime();
-            fetchStats();
-            
-            // Perbarui waktu setiap detik
-            setInterval(updateTime, 1000);
-            // Perbarui statistik setiap 5 detik untuk menjaga data tetap fresh
-            setInterval(fetchStats, 5000);
-        });
+            const data = await response.json();
+            const downloadLink = data.downloadLink;
+
+            if (downloadLink) {
+              downloadResult.src = downloadLink;
+              downloadResult.style.maxWidth = "500px";
+              downloadResult.style.display = "block";
+
+              // Set the download link and show it
+              downloadLinkElement.href = downloadLink;
+              downloadLinkElement.download = "upscaled_image.png"; // You can set the filename here
+              downloadLinkElement.style.display = "inline";
+
+            } else {
+                alert("Upscaling failed!");
+            }
+        } catch (error) {
+            console.error("Error uploading image:", error);
+            alert("Error uploading image: " + error.message);
+        }
+    }
     </script>
 </body>
 </html>
