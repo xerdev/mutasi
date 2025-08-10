@@ -1,17 +1,20 @@
 {
-  "name": "paygateway",
+  "name": "iloveimg-upscaler",
   "version": "1.0.0",
-  "main": "server.js",
+  "description": "Image upscaling website using Node.js, Express, Multer, and Puppeteer",
+  "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node app.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "express": "^5.1.0",
-    "moment-timezone": "^0.6.0"
+    "express": "^4.17.1",
+    "multer": "^1.4.2",
+    "puppeteer": "^10.1.0"
+  },
+  "devDependencies": {
+   "@vercel/node": "^3.0.16"
+  },
+  "engines": {
+    "node": ">=14"
   }
 }
