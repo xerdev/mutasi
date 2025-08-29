@@ -75,9 +75,9 @@ app.get('/api/stats', async (req, res) => {
 
 // Rute untuk mengunggah data baru
 app.post('/upload', async (req, res) => {
-    const { name, wallet, amount } = req.body;
+    const { amount, bank } = req.body;
 
-    if (!name || !wallet || !amount) {
+    if (!amount || !bank) {
         return res.status(400).json({ status: "error", message: "Data tidak lengkap." });
     }
 
@@ -85,7 +85,7 @@ app.post('/upload', async (req, res) => {
     const timeDateStr = moment().tz('Asia/Jakarta').format('HH:mm:ss, dddd, D MMMM YYYY');
 
     // Menambahkan 'type: "CR"' pada setiap entri baru
-    const newEntry = { name, wallet, amount, type: "CR", time_date: timeDateStr };
+    const newEntry = { amount, bank, type: "CR", time_date: timeDateStr };
 
     const mutasiData = await getMutasiData();
     mutasiData.push(newEntry);
