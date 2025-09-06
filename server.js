@@ -111,6 +111,8 @@ app.get('/api/stats', async (req, res) => {
 app.post('/upload', async (req, res) => {
     const { amount, bank } = req.body;
 
+    console.log('Received data:', { amount, bank, amountType: typeof amount });
+
     if (amount === undefined || amount === null || !bank) {
         return res.status(400).json({ status: "error", message: "Data tidak lengkap." });
     }
@@ -122,6 +124,8 @@ app.post('/upload', async (req, res) => {
 
     const parsedAmount = parseAmount(amount);
     
+    console.log('Original amount:', amount, 'Parsed amount:', parsedAmount);
+    
     if (parsedAmount <= 0) {
         return res.status(400).json({ status: "error", message: "Amount harus lebih dari 0." });
     }
@@ -131,6 +135,8 @@ app.post('/upload', async (req, res) => {
 
     // Menambahkan 'type: "CR"' pada setiap entri baru dengan amount yang sudah diparsing
     const newEntry = { amount: parsedAmount, bank, type: "CR", time_date: timeDateStr };
+
+    console.log('New entry to be saved:', newEntry);
 
     const mutasiData = await getMutasiData();
     mutasiData.push(newEntry);
