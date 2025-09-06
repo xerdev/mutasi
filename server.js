@@ -111,15 +111,19 @@ app.get('/api/stats', async (req, res) => {
 app.post('/upload', async (req, res) => {
     const { amount, bank } = req.body;
 
-    if (!amount || !bank) {
+    if (amount === undefined || amount === null || !bank) {
         return res.status(400).json({ status: "error", message: "Data tidak lengkap." });
     }
 
-    // Parse amount menggunakan fungsi helper
+    // Pastikan amount adalah number dan proses menjadi integer
+    if (typeof amount !== 'number' || isNaN(amount)) {
+        return res.status(400).json({ status: "error", message: "Amount harus berupa angka." });
+    }
+
     const parsedAmount = parseAmount(amount);
     
     if (parsedAmount <= 0) {
-        return res.status(400).json({ status: "error", message: "Amount tidak valid." });
+        return res.status(400).json({ status: "error", message: "Amount harus lebih dari 0." });
     }
 
     moment.locale('id');
@@ -134,8 +138,7 @@ app.post('/upload', async (req, res) => {
 
     res.status(201).json({ 
         status: "success", 
-        message: "Data berhasil ditambahkan",
-        parsed_amount: parsedAmount
+        message: "Data berhasil ditambahkan"
     });
 });
 
