@@ -15,6 +15,40 @@ app.use(express.static(path.join(__dirname, 'public')));
 // --- Helper Functions ---
 
 /**
+ * Mengubah input amount menjadi angka yang valid
+ * @param {string|number} amount - Input amount yang bisa berupa "1.000", "1k", "1.000.000", dll
+ * @returns {number} - Angka yang sudah dikonversi
+ */
+function parseAmount(amount) {
+    if (typeof amount === 'number') {
+        return amount;
+    }
+    
+    let amountStr = String(amount).toLowerCase().trim();
+    
+    // Handle format "k" (ribuan)
+    if (amountStr.includes('k')) {
+        const numPart = amountStr.replace('k', '').replace(/\./g, '');
+        const num = parseFloat(numPart);
+        return isNaN(num) ? 0 : num * 1000;
+    }
+    
+    // Handle format "m" (jutaan)
+    if (amountStr.includes('m')) {
+        const numPart = amountStr.replace('m', '').replace(/\./g, '');
+        const num = parseFloat(numPart);
+        return isNaN(num) ? 0 : num * 1000000;
+    }
+    
+    // Handle format dengan titik sebagai pemisah ribuan (1.000, 1.000.000, dll)
+    // Hapus semua titik dan konversi ke number
+    const cleanAmount = amountStr.replace(/\./g, '');
+    const num = parseFloat(cleanAmount);
+    
+    return isNaN(num) ? 0 : num;
+}
+
+/**
  * Mengambil data mutasi dari Vercel KV.
  * @returns {Promise<Array>}
  */
@@ -81,17 +115,28 @@ app.post('/upload', async (req, res) => {
         return res.status(400).json({ status: "error", message: "Data tidak lengkap." });
     }
 
+    // Parse amount menggunakan fungsi helper
+    const parsedAmount = parseAmount(amount);
+    
+    if (parsedAmount <= 0) {
+        return res.status(400).json({ status: "error", message: "Amount tidak valid." });
+    }
+
     moment.locale('id');
     const timeDateStr = moment().tz('Asia/Jakarta').format('HH:mm:ss, dddd, D MMMM YYYY');
 
-    // Menambahkan 'type: "CR"' pada setiap entri baru
-    const newEntry = { amount, bank, type: "CR", time_date: timeDateStr };
+    // Menambahkan 'type: "CR"' pada setiap entri baru dengan amount yang sudah diparsing
+    const newEntry = { amount: parsedAmount, bank, type: "CR", time_date: timeDateStr };
 
     const mutasiData = await getMutasiData();
     mutasiData.push(newEntry);
     await saveMutasiData(mutasiData);
 
-    res.status(201).json({ status: "success", message: "Data berhasil ditambahkan" });
+    res.status(201).json({ 
+        status: "success", 
+        message: "Data berhasil ditambahkan",
+        parsed_amount: parsedAmount
+    });
 });
 
 // Rute untuk menampilkan data mentah
