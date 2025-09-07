@@ -108,6 +108,7 @@ app.get('/api/stats', async (req, res) => {
 });
 
 // Rute untuk mengunggah data baru
+// Rute untuk mengunggah data baru
 app.post('/upload', async (req, res) => {
     const { amount, bank } = req.body;
 
@@ -117,23 +118,22 @@ app.post('/upload', async (req, res) => {
         return res.status(400).json({ status: "error", message: "Data tidak lengkap." });
     }
 
-    // Pastikan amount adalah number dan proses menjadi integer
-    if (typeof amount !== 'number' || isNaN(amount)) {
-        return res.status(400).json({ status: "error", message: "Amount harus berupa angka." });
-    }
+    // Bersihkan amount dari titik/koma
+    let cleanedAmount = String(amount).replace(/[.,]/g, '');
 
-    const parsedAmount = parseAmount(amount);
-    
+    // Pastikan angka valid
+    const parsedAmount = parseInt(cleanedAmount, 10);
+
     console.log('Original amount:', amount, 'Parsed amount:', parsedAmount);
-    
-    if (parsedAmount <= 0) {
-        return res.status(400).json({ status: "error", message: "Amount harus lebih dari 0." });
+
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        return res.status(400).json({ status: "error", message: "Amount harus berupa angka lebih dari 0." });
     }
 
     moment.locale('id');
     const timeDateStr = moment().tz('Asia/Jakarta').format('HH:mm:ss, dddd, D MMMM YYYY');
 
-    // Menambahkan 'type: "CR"' pada setiap entri baru dengan amount yang sudah diparsing
+    // Buat entri baru dengan amount yang sudah dibersihkan
     const newEntry = { amount: parsedAmount, bank, type: "CR", time_date: timeDateStr };
 
     console.log('New entry to be saved:', newEntry);
@@ -144,7 +144,7 @@ app.post('/upload', async (req, res) => {
 
     res.status(201).json({ 
         status: "success", 
-        message: "Data berhasil ditambahkan"
+        message: "Data berhasil ditambahkan" 
     });
 });
 
